@@ -240,7 +240,7 @@ function Loader.New(Settings: {any})
 	if supported and Settings.Script then
 		loadstring(Settings.Script)()
 	else
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/jaeelin/Test/refs/heads/main/Unsupported.lua"))()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/jaeelin/Calamari/refs/heads/main/Utilities/Unsupported.lua"))()
 	end
 	
 	WindowFunctions:Unload()
