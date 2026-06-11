@@ -6,7 +6,7 @@ getgenv().Core = {}
 
 local Core = getgenv().Core
 
-Core.Version = "1.0.0"
+Core.Version = "1.0.1"
 Core.Loaded = true
 
 Core.Services = {}
@@ -310,12 +310,7 @@ function Core.Features.AimAssist:GetTargetPart(Character: Model)
 	return part
 end
 
-
-function Core.Features.GunCustomizer:StripAppearances(Model: Model)
-	self.Appearances = {}
-	self.OriginalProperties = {}
-	self.TargetModel = Model
-
+local function StripAppearances(self, Model: Model)
 	for _, object in next, Model:GetDescendants() do
 		if object:IsA("SurfaceAppearance") then
 			table.insert(self.Appearances, {
@@ -324,7 +319,7 @@ function Core.Features.GunCustomizer:StripAppearances(Model: Model)
 			})
 			object.Parent = nil
 		end
-		
+
 		if object:IsA("BasePart") then
 			self.OriginalProperties[object] = {
 				Transparency = object.Transparency,
@@ -335,20 +330,36 @@ function Core.Features.GunCustomizer:StripAppearances(Model: Model)
 	end
 end
 
-function Core.Features.GunCustomizer:RestoreAppearances()
+local function RestoreAppearances(self)
 	for _, data in next, self.Appearances do
 		if data.instance and data.parent then
 			data.instance.Parent = data.parent
 		end
 	end
-	
-	for part, props in next, self.OriginalProperties do
+
+	for part, properties in next, self.OriginalProperties do
 		if part and part.Parent then
-			part.Transparency = props.Transparency
-			part.Material = props.Material
-			part.Color = props.Color
+			part.Transparency = properties.Transparency
+			part.Material = properties.Material
+			part.Color = properties.Color
 		end
 	end
+end
+
+function Core.Features.GunCustomizer:StripAppearances(Model: Model)
+	StripAppearances(self, Model)
+end
+
+function Core.Features.GunCustomizer:RestoreAppearances()
+	RestoreAppearances(self)
+end
+
+function Core.Features.KnifeCustomizer:StripAppearances(Model: Model)
+	StripAppearances(self, Model)
+end
+
+function Core.Features.KnifeCustomizer:RestoreAppearances()
+	RestoreAppearances(self)
 end
 
 --[[ FEATURES ]]--
@@ -1699,7 +1710,7 @@ KnifeCustomizer = sections.render_right_bottom:Toggle({
 
 			Core.Features.KnifeCustomizer.Model = model
 
-			Core.Features.GunCustomizer:StripAppearances(model)
+			Core.Features.KnifeCustomizer:StripAppearances(model)
 
 			Core.Connections.KnifeCustomizer = Services.RunService.PreRender:Connect(function()
 				local character = LocalPlayer.Character
@@ -1709,9 +1720,9 @@ KnifeCustomizer = sections.render_right_bottom:Toggle({
 				if not model then return end
 
 				if model ~= Core.Features.KnifeCustomizer.LastModel then
-					Core.Features.GunCustomizer:RestoreAppearances()
+					Core.Features.KnifeCustomizer:RestoreAppearances()
 
-					Core.Features.GunCustomizer:StripAppearances(model)
+					Core.Features.KnifeCustomizer:StripAppearances(model)
 
 					Core.Features.KnifeCustomizer.LastModel = model
 				end
