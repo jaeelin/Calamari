@@ -7,7 +7,7 @@ local Camera = workspace.CurrentCamera
 
 local PlayerESP = {}
 PlayerESP.__index = PlayerESP
-PlayerESP.Version = "1.0.0"
+PlayerESP.Version = "1.0.1"
 
 function PlayerESP.new(Config: {any})
 	local self = setmetatable({}, PlayerESP)
@@ -29,13 +29,13 @@ function PlayerESP.new(Config: {any})
 	self.ChamsOutline = Config and Config.ChamsOutline or Color3.fromRGB(255, 255, 255)
 	self.MaxDistance = Config and Config.MaxDistance or 300
 	
-	self.Boxes = {}
-	self.HealthBars = {}
-	self.Tracers = {}
-	self.Skeletons = {}
-	self.Names = {}
-	self.Arrows = {}
-	self.Chams = {}
+	self.BoxDrawings = {}
+	self.HealthBarDrawings = {}
+	self.TracerDrawings = {}
+	self.SkeletonDrawings = {}
+	self.NameDrawings = {}
+	self.ArrowDrawings = {}
+	self.ChamDrawings = {}
 
 	self.TargetColors = {}
 	self.ActiveTargets = {}
@@ -70,14 +70,14 @@ function PlayerESP:DrawBone(Target: Player, Index: number, Part1: BasePart, Part
 	local point_a_position, a_on_screen = Camera:WorldToViewportPoint(Part1.Position)
 	local point_b_position, b_on_screen = Camera:WorldToViewportPoint(Part2.Position)
 
-	self.Skeletons[Target] = self.Skeletons[Target] or {}
-	self.Skeletons[Target][Index] = self.Skeletons[Target][Index] or self:CreateDrawing("Line", {
+	self.SkeletonDrawings[Target] = self.SkeletonDrawings[Target] or {}
+	self.SkeletonDrawings[Target][Index] = self.SkeletonDrawings[Target][Index] or self:CreateDrawing("Line", {
 		Thickness = 1.5,
 		Color = Color,
 		Transparency = 1
 	})
 
-	local line = self.Skeletons[Target][Index]
+	local line = self.SkeletonDrawings[Target][Index]
 	line.From = Vector2.new(point_a_position.X, point_a_position.Y)
 	line.To = Vector2.new(point_b_position.X, point_b_position.Y)
 	line.Visible = a_on_screen or b_on_screen
@@ -85,7 +85,7 @@ function PlayerESP:DrawBone(Target: Player, Index: number, Part1: BasePart, Part
 end
 
 function PlayerESP:Cleanup(Target: Player)
-	for _, esp_table in next, {self.Boxes, self.HealthBars, self.Tracers, self.Names, self.Arrows} do
+	for _, esp_table in next, {self.BoxDrawings, self.HealthBarDrawings, self.TracerDrawings, self.NameDrawings, self.ArrowDrawings} do
 		local object = esp_table[Target]
 		if object then
 			if type(object) == "table" then
@@ -98,22 +98,22 @@ function PlayerESP:Cleanup(Target: Player)
 		end
 	end
 
-	if self.Skeletons[Target] then
-		for _, line in next, self.Skeletons[Target] do
+	if self.SkeletonDrawings[Target] then
+		for _, line in next, self.SkeletonDrawings[Target] do
 			line:Remove()
 		end
 		
-		self.Skeletons[Target] = nil
+		self.SkeletonDrawings[Target] = nil
 	end
 
-	if self.Chams[Target] then
-		self.Chams[Target]:Destroy()
-		self.Chams[Target] = nil
+	if self.ChamDrawings[Target] then
+		self.ChamDrawings[Target]:Destroy()
+		self.ChamDrawings[Target] = nil
 	end
 end
 
 function PlayerESP:RemoveESP()
-	local objects = {self.Tracers, self.Boxes, self.Names, self.HealthBars, self.Arrows}
+	local objects = {self.TracerDrawings, self.BoxDrawings, self.NameDrawings, self.HealthBarDrawings, self.ArrowDrawings}
 	for _, table in next, objects do
 		for _, object in next, table do
 			if type(object) == "table" then
@@ -126,42 +126,42 @@ function PlayerESP:RemoveESP()
 		end
 	end
 
-	for _, skeleton in next, self.Skeletons do
+	for _, skeleton in next, self.SkeletonDrawings do
 		for _, line in next, skeleton do
 			line.Visible = false
 		end
 	end
 
-	for _, cham in next, self.Chams do
+	for _, cham in next, self.ChamDrawings do
 		cham:Destroy()
 	end
 
-	self.Tracers = {}
-	self.Boxes = {}
-	self.Names = {}
-	self.HealthBars = {}
-	self.Skeletons = {}
-	self.Arrows = {}
-	self.Chams = {}
+	self.TracerDrawings = {}
+	self.BoxDrawings = {}
+	self.NameDrawings = {}
+	self.HealthBarDrawings = {}
+	self.SkeletonDrawings = {}
+	self.ArrowDrawings = {}
+	self.ChamDrawings = {}
 end
 
 function PlayerESP:DrawBox(Target: Player, ScreenPosition: Vector2, BoxWidth: number, BoxHeight: number, Color: Color3)
 	if not self.Box then
-		if self.Boxes[Target] then
-			self.Boxes[Target].Visible = false
+		if self.BoxDrawings[Target] then
+			self.BoxDrawings[Target].Visible = false
 		end
 		
 		return
 	end
 
-	local box = self.Boxes[Target] or self:CreateDrawing("Square", {
+	local box = self.BoxDrawings[Target] or self:CreateDrawing("Square", {
 		Color = Color,
 		Thickness = 1.5,
 		Filled = false,
 		Transparency = 1
 	})
 	
-	self.Boxes[Target] = box
+	self.BoxDrawings[Target] = box
 
 	box.Size = Vector2.new(BoxWidth, BoxHeight)
 	box.Position = Vector2.new(ScreenPosition.X - BoxWidth / 2, ScreenPosition.Y - BoxHeight / 2)
@@ -171,21 +171,21 @@ end
 
 function PlayerESP:DrawHealthBar(Target: Player, ScreenPosition: Vector2, BoxWidth: number, BoxHeight: number)
 	if not self.HealthBar then
-		if self.HealthBars and self.HealthBars[Target] then
-			self.HealthBars[Target].Visible = false
+		if self.HealthBarDrawings and self.HealthBarDrawings[Target] then
+			self.HealthBarDrawings[Target].Visible = false
 		end
 		
 		return
 	end
 
-	local bar = self.HealthBars[Target] or self:CreateDrawing("Square", {
+	local bar = self.HealthBarDrawings[Target] or self:CreateDrawing("Square", {
 		Color = Color3.fromRGB(150, 255, 150),
 		Thickness = 1,
 		Filled = true,
 		Transparency = 1
 	})
 	
-	self.HealthBars[Target] = bar
+	self.HealthBarDrawings[Target] = bar
 
 	local humanoid = Target.Character and Target.Character:FindFirstChild("Humanoid")
 	if not humanoid or humanoid.Health <= 0 then bar.Visible = false return end
@@ -210,19 +210,19 @@ end
 
 function PlayerESP:DrawTracer(Target: Player, ScreenPosition: Vector2, Color: Color3)
 	if not self.Tracer then
-		if self.Tracers[Target] then
-			self.Tracers[Target].Visible = false
+		if self.TracerDrawings[Target] then
+			self.TracerDrawings[Target].Visible = false
 		end
 		
 		return
 	end
 
-	local tracer = self.Tracers[Target] or self:CreateDrawing("Line", {
+	local tracer = self.TracerDrawings[Target] or self:CreateDrawing("Line", {
 		Color = Color,
 		Thickness = 1.5
 	})
 	
-	self.Tracers[Target] = tracer
+	self.TracerDrawings[Target] = tracer
 
 	local viewport_size = Camera.ViewportSize
 	local camera_screen_position = 
@@ -237,14 +237,14 @@ end
 
 function PlayerESP:DrawName(Target: Player, ScreenPosition: Vector2, BoxHeight: number, Distance: number, Color: Color3)
 	if not self.Name then
-		if self.Names[Target] then
-			self.Names[Target].Visible = false
+		if self.NameDrawings[Target] then
+			self.NameDrawings[Target].Visible = false
 		end
 		
 		return
 	end
 
-	local name_text = self.Names[Target] or self:CreateDrawing("Text", {
+	local name_text = self.NameDrawings[Target] or self:CreateDrawing("Text", {
 		Text = Target.Name,
 		Color = Color,
 		Font = 2,
@@ -253,7 +253,7 @@ function PlayerESP:DrawName(Target: Player, ScreenPosition: Vector2, BoxHeight: 
 		Outline = true
 	})
 	
-	self.Names[Target] = name_text
+	self.NameDrawings[Target] = name_text
 
 	name_text.Text = Target.Name .. " [" .. Distance .. "m]"
 	name_text.Position = Vector2.new(ScreenPosition.X, ScreenPosition.Y - BoxHeight / 2 - 15)
@@ -263,7 +263,7 @@ end
 
 function PlayerESP:DrawSkeleton(Target: Player, Character: Model, Color: Color3)
 	if not self.Skeleton then
-		for _, skeleton in next, self.Skeletons do
+		for _, skeleton in next, self.SkeletonDrawings do
 			for _, line in next, skeleton do line.Visible = false end
 		end
 		
@@ -310,15 +310,15 @@ function PlayerESP:DrawSkeleton(Target: Player, Character: Model, Color: Color3)
 	DrawLimb(root, parts.LeftUpperLeg, parts.LeftLowerLeg, 6)
 	DrawLimb(root, parts.RightUpperLeg, parts.RightLowerLeg, 8)
 
-	for _, line in next, self.Skeletons[Target] or {} do
+	for _, line in next, self.SkeletonDrawings[Target] or {} do
 		line.Color = Color
 	end
 end
 
 function PlayerESP:DrawArrows(Target: Player, _, Color: Color3)
 	if not self.Arrows then
-		if self.Arrows[Target] then
-			for _, line in next, self.Arrows[Target] do line.Visible = false end
+		if self.ArrowDrawings[Target] then
+			for _, line in next, self.ArrowDrawings[Target] do line.Visible = false end
 		end
 		
 		return
@@ -329,7 +329,7 @@ function PlayerESP:DrawArrows(Target: Player, _, Color: Color3)
 	
 	if not humanoid_root_part then return end
 
-	self.Arrows[Target] = self.Arrows[Target] or {}
+	self.ArrowDrawings[Target] = self.ArrowDrawings[Target] or {}
 
 	local viewport = Camera.ViewportSize
 	local center = Vector2.new(viewport.X / 2, viewport.Y / 2)
@@ -350,8 +350,8 @@ function PlayerESP:DrawArrows(Target: Player, _, Color: Color3)
 	}
 
 	for i = 1, 3 do
-		local line = self.Arrows[Target][i] or self:CreateDrawing("Line", {Color = Color, Thickness = 1.5})
-		self.Arrows[Target][i] = line
+		local line = self.ArrowDrawings[Target][i] or self:CreateDrawing("Line", {Color = Color, Thickness = 1.5})
+		self.ArrowDrawings[Target][i] = line
 		line.From = points[i]
 		line.To = points[i % 3 + 1]
 		line.Color = Color
@@ -361,8 +361,8 @@ end
 
 function PlayerESP:DrawChams(Target: Player, Character: Model, FillColor: Color3, OutlineColor: Color3)
 	if not self.Chams then
-		if self.Chams[Target] then
-			self.Chams[Target].Enabled = false
+		if self.ChamDrawings[Target] then
+			self.ChamDrawings[Target].Enabled = false
 		end
 		
 		return
@@ -370,8 +370,8 @@ function PlayerESP:DrawChams(Target: Player, Character: Model, FillColor: Color3
 
 	if not Character or not Character.Parent then return end
 
-	local highlight = self.Chams[Target] or Instance.new("Highlight")
-	self.Chams[Target] = highlight
+	local highlight = self.ChamDrawings[Target] or Instance.new("Highlight")
+	self.ChamDrawings[Target] = highlight
 
 	highlight.Parent = Character
 	highlight.Adornee = Character
@@ -414,8 +414,8 @@ function PlayerESP:Update(Target: Player)
 		self:DrawArrows(Target, box_center, color)
 		return
 	else
-		if self.Arrows[Target] then
-			for _, line in next, self.Arrows[Target] do
+		if self.ArrowDrawings[Target] then
+			for _, line in next, self.ArrowDrawings[Target] do
 				line.Visible = false
 			end
 		end
@@ -526,5 +526,28 @@ function PlayerESP:Disable()
 	
 	self.Connections = {}
 end
+
+local new_esp = PlayerESP.new({
+	Box = true,
+	Name = true,
+	Skeleton = true,
+	Tracer = true,
+	HealthBar = true,
+	Arrows = true,
+	Chams = true,
+	ChamsFill = true,
+	Rainbow = false,
+	TracerOrigin = "Character",
+	DefaultColor = Color3.fromRGB(255, 255, 255),
+	ChamsColor = Color3.fromRGB(150, 150, 150),
+	ChamsOutline = Color3.fromRGB(255, 255, 255),
+	MaxDistance = 500
+})
+
+new_esp:Enable()
+
+task.wait(5)
+
+new_esp:Disable()
 
 return PlayerESP
