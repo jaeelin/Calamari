@@ -6,7 +6,7 @@ getgenv().Core = {}
 
 local Core = getgenv().Core
 
-Core.Version = "1.0.1"
+Core.Version = "1.0.2"
 Core.Loaded = true
 
 Core.Services = {}
@@ -313,35 +313,61 @@ end
 local function StripAppearances(self, Model: Model)
 	for _, object in next, Model:GetDescendants() do
 		if object:IsA("SurfaceAppearance") then
-			table.insert(self.Appearances, {
-				instance = object,
-				parent = object.Parent
-			})
-			object.Parent = nil
-		end
 
+			local parent = object.Parent
+			
+			if parent
+				and typeof(parent) == "Instance"
+				and parent.Parent ~= nil
+			then
+				table.insert(self.Appearances, {
+					instance = object,
+					parent = parent
+				})
+			end
+			
+			pcall(function()
+				object.Parent = nil
+			end)
+		end
+		
 		if object:IsA("BasePart") then
-			self.OriginalProperties[object] = {
-				Transparency = object.Transparency,
-				Material = object.Material,
-				Color = object.Color
-			}
+			if typeof(object) == "Instance" and object.Parent ~= nil then
+				self.OriginalProperties[object] = {
+					Transparency = object.Transparency,
+					Material = object.Material,
+					Color = object.Color
+				}
+			end
 		end
 	end
 end
 
 local function RestoreAppearances(self)
 	for _, data in next, self.Appearances do
-		if data.instance and data.parent then
-			data.instance.Parent = data.parent
+		if data.instance
+			and typeof(data.instance) == "Instance"
+			and data.instance.Parent ~= nil
+			and data.parent
+			and typeof(data.parent) == "Instance"
+			and data.parent.Parent ~= nil
+		then
+			pcall(function()
+				data.instance.Parent = data.parent
+			end)
 		end
 	end
 
 	for part, properties in next, self.OriginalProperties do
-		if part and part.Parent then
-			part.Transparency = properties.Transparency
-			part.Material = properties.Material
-			part.Color = properties.Color
+		if part
+			and typeof(part) == "Instance"
+			and part.Parent ~= nil
+		then
+			pcall(function()
+				part.Transparency = properties.Transparency
+				part.Material = properties.Material
+				part.Color = properties.Color
+			end)
 		end
 	end
 end
