@@ -1,6 +1,5 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -8,14 +7,16 @@ local Camera = workspace.CurrentCamera
 
 local SafetyESP = {}
 SafetyESP.__index = SafetyESP
-SafetyESP.Version = "1.0.0"
+SafetyESP.Version = "1.0.1"
 
 function SafetyESP.new(Config: {any})
 	local self = setmetatable({}, SafetyESP)
-	
+
 	self.Debug = Config and Config.Debug or false
 	
 	self.FlagDictionary = Config and Config.FlagDictionary or {}
+	
+	self.TargetData = {}
 	
 	self.Enabled = false
 	self.Box = Config and Config.Box or false
@@ -23,15 +24,15 @@ function SafetyESP.new(Config: {any})
 	self.Status = Config and Config.Status or false
 	self.DefaultColor = Config and Config.DefaultColor or Color3.fromRGB(255, 255, 255)
 	self.MaxDistance = Config and Config.MaxDistance or 300
-	
+
 	self.BoxDrawings = {}
 	self.NameDrawings = {}
 	self.StatusDrawings = {}
-	
+
 	self.TargetColors = {}
 	self.ActiveTargets = {}
 	self.Connections = {}
-	
+
 	return self
 end
 
@@ -136,7 +137,7 @@ function SafetyESP:DrawStatus(Target: Player, ScreenPosition: Vector2, BoxHeight
 		if self.StatusDrawings[Target] then
 			self.StatusDrawings[Target].Visible = false
 		end
-		
+
 		return
 	end
 
@@ -147,13 +148,13 @@ function SafetyESP:DrawStatus(Target: Player, ScreenPosition: Vector2, BoxHeight
 		Center = true,
 		Outline = true
 	})
-	
+
 	self.StatusDrawings[Target] = status_text
 
 	local flag_name = self.FlagDictionary[Data.flagType] or "Unknown"
 	local confidence = math.floor((Data.confidence or 0) * 100)
 	status_text.Text = flag_name .. " (" .. confidence .. "%)"
-	
+
 	status_text.Position = Vector2.new(ScreenPosition.X, ScreenPosition.Y - BoxHeight / 2 - 32)
 	status_text.Color = Color
 	status_text.Visible = true
@@ -192,7 +193,7 @@ function SafetyESP:Update(Target: Player)
 
 	self:DrawBox(Target, box_center, box_width, box_height, color)
 	self:DrawName(Target, box_center, box_height, distance, color)
-	
+
 	local data = self.TargetData and self.TargetData[Target.UserId] or nil
 	self:DrawStatus(Target, box_center, box_height, data, color)
 end
