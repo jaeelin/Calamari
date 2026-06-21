@@ -7,7 +7,7 @@ local Camera = workspace.CurrentCamera
 
 local PlayerESP = {}
 PlayerESP.__index = PlayerESP
-PlayerESP.Version = "1.0.1"
+PlayerESP.Version = "1.0.2"
 
 function PlayerESP.new(Config: {any})
 	local self = setmetatable({}, PlayerESP)
@@ -526,28 +526,5 @@ function PlayerESP:Disable()
 	
 	self.Connections = {}
 end
-
-local new_esp = PlayerESP.new({
-	Box = true,
-	Name = true,
-	Skeleton = true,
-	Tracer = true,
-	HealthBar = true,
-	Arrows = true,
-	Chams = true,
-	ChamsFill = true,
-	Rainbow = false,
-	TracerOrigin = "Character",
-	DefaultColor = Color3.fromRGB(255, 255, 255),
-	ChamsColor = Color3.fromRGB(150, 150, 150),
-	ChamsOutline = Color3.fromRGB(255, 255, 255),
-	MaxDistance = 500
-})
-
-new_esp:Enable()
-
-task.wait(5)
-
-new_esp:Disable()
 
 return PlayerESP
